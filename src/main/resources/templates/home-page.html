@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Trang Khoa</title>
+</head>
+<body>
+<h1>Danh sách Khoa</h1>
+
+<ul>
+    <li th:each="khoa : ${dskhoa}">
+        <span th:text="${khoa.name}"></span> - <span th:text="${khoa.code}"></span>
+    </li>
+</ul>
+
+</body>
+</html>
