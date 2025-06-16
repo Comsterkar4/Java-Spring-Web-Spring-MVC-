@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm Khoa</title>
+    <style>
+        form { max-width: 400px; margin: 0 auto; }
+        label { display: inline-block; width: 100px; }
+        input[type="text"] { margin-bottom: 10px; padding: 5px; width: 200px; }
+        button { padding: 5px 10px; }
+        #message { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<h1>Thêm Khoa</h1>
+
+<form id="add-form">
+    <label for="name">Tên Khoa:</label>
+    <input type="text" id="name" name="name" placeholder="Tên khoa" required><br>
+    <label for="code">Mã Khoa:</label>
+    <input type="text" id="code" name="code" placeholder="Mã khoa" required><br>
+    <button type="submit">Thêm</button>
+</form>
+
+<div id="message"></div>
+
+<script>
+    document.getElementById("add-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value.trim();
+        const code = document.getElementById("code").value.trim();
+        if (!name || !code) {
+            document.getElementById("message").textContent = "Tên khoa và Mã khoa không được để trống.";
+            return;
+        }
+        const newFaculty = { name, code };
+        try {
+            const response = await fetch("http://localhost:8080/api/khoa", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newFaculty)
+            });
+            if (response.ok) {
+                alert("Thêm khoa thành công!");
+                window.location.href = "/Khoa/FacultyApi";
+            } else {
+                const errorText = await response.text();
+                document.getElementById("message").textContent = `Lỗi khi thêm khoa (mã lỗi: ${response.status}): ${errorText}`;
+            }
+        } catch (error) {
+            document.getElementById("message").textContent = `Lỗi khi thêm khoa: ${error.message}. Kiểm tra kết nối server.`;
+        }
+    });
+</script>
+</body>
+</html>

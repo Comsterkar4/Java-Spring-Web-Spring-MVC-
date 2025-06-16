@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách Khoa</title>
+    <style>
+        table { border-collapse: collapse; width: 50%; margin: 20px auto; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        button, a { margin-right: 5px; text-decoration: none; }
+        #loading, #error-message { text-align: center; margin: 10px; }
+        #error-message { color: red; display: none; }
+    </style>
+</head>
+<body>
+<h1>Danh sách Khoa (dùng API + JavaScript)</h1>
+
+<a href="/Khoa/AddFaculty">Thêm Khoa</a>
+
+<div id="loading">Đang tải dữ liệu...</div>
+<div id="error-message"></div>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Tên Khoa</th>
+        <th>Mã Khoa</th>
+        <th>Hành Động</th>
+    </tr>
+    </thead>
+    <tbody id="faculty-table-body">
+    <!-- Dữ liệu sẽ được đổ bằng JavaScript -->
+    </tbody>
+</table>
+
+<script>
+    async function loadFaculties() {
+        const tbody = document.getElementById('faculty-table-body');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('error-message');
+
+        loading.style.display = 'block';
+        errorMessage.style.display = 'none';
+        tbody.innerHTML = '';
+
+        try {
+            const response = await fetch('/api/khoa');
+            if (!response.ok) {
+                throw new Error(`HTTP lỗi: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4">Không có khoa nào.</td></tr>`;
+                return;
+            }
+            data.forEach(khoa => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${khoa.id}</td>
+                    <td>${khoa.name || 'N/A'}</td>
+                    <td>${khoa.code || 'N/A'}</td>
+                    <td>
+                        <a href="/Khoa/EditFaculty?id=${khoa.id}">Sửa</a>
+                        <button onclick="deleteFaculty(${khoa.id})">Xóa</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            errorMessage.textContent = 'Lỗi khi tải danh sách khoa. Vui lòng thử lại!';
+            errorMessage.style.display = 'block';
+            console.error(error);
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
+    async function deleteFaculty(id) {
+        if (!confirm('Bạn có chắc muốn xóa khoa này?')) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/khoa/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (response.ok) {
+                alert('Xóa khoa thành công!');
+                window.location.reload(); // Tải lại danh sách
+            } else {
+                const errorText = await response.text();
+                document.getElementById('error-message').textContent = `Lỗi khi xóa khoa (mã lỗi: ${response.status}): ${errorText}`;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        } catch (error) {
+            document.getElementById('error-message').textContent = `Lỗi khi xóa khoa: ${error.message}. Kiểm tra kết nối server.`;
+            document.getElementById('error-message').style.display = 'block';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadFaculties);
+</script>
+</body>
+</html>

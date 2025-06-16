@@ -9,16 +9,7 @@ public class Database {
     private static final String USER = "nlviet";
     private static final String PASSWORD = "270604";
 
-    public static Connection getConnection() {
-        try {
-            return DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (SQLException e) {
-            System.out.println("Lỗi kết nối database: " + e.getMessage());
-            return null;
-        }
-    }
-    // phương thức để có thể chạy độc lập riêng file
-    public static void main(String[] args){
-        Connection conn = Database.getConnection();
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }

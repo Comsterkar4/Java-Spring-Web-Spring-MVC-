@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Sửa Khoa</title>
+</head>
+<body>
+<h1>Sửa Khoa</h1>
+
+<form id="edit-form">
+    <input type="hidden" id="id">
+    <label for="name">Tên Khoa:</label>
+    <input type="text" id="name" required><br>
+    <label for="code">Mã Khoa:</label>
+    <input type="text" id="code" required><br>
+    <button type="submit">Cập nhật</button>
+</form>
+
+<div id="message"></div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    async function loadFaculty() {
+        if (!id) {
+            document.getElementById("message").textContent = "Lỗi: ID khoa không hợp lệ. Vui lòng kiểm tra URL.";
+            return;
+        }
+        try {
+            const response = await fetch(`http://localhost:8080/api/khoa/${id}`);
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                document.getElementById("message").textContent = `Không tìm thấy khoa (mã lỗi: ${response.status}): ${error.message || response.statusText}`;
+                return;
+            }
+            const faculty = await response.json();
+            if (!faculty.name || !faculty.code) {
+                document.getElementById("message").textContent = "Lỗi: Dữ liệu khoa không đầy đủ (thiếu Tên khoa hoặc Mã khoa).";
+                return;
+            }
+            document.getElementById("id").value = faculty.id || id;
+            document.getElementById("name").value = faculty.name;
+            document.getElementById("code").value = faculty.code;
+        } catch (error) {
+            document.getElementById("message").textContent = `Lỗi khi tải khoa: ${error.message}. Kiểm tra kết nối server.`;
+        }
+    }
+
+    document.getElementById("edit-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value.trim();
+        const code = document.getElementById("code").value.trim();
+        if (!name || !code) {
+            document.getElementById("message").textContent = "Tên khoa và Mã khoa không được để trống.";
+            return;
+        }
+        const updatedFaculty = { name, code };
+        try {
+            const response = await fetch(`http://localhost:8080/api/khoa/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedFaculty)
+            });
+            if (response.ok) {
+                alert("Cập nhật thành công!");
+                window.location.href = "/Khoa/FacultyApi";
+            } else {
+                const error = await response.json().catch(() => ({}));
+                document.getElementById("message").textContent = `Lỗi cập nhật (mã lỗi: ${response.status}): ${error.message || response.statusText}`;
+            }
+        } catch (error) {
+            document.getElementById("message").textContent = `Lỗi khi cập nhật: ${error.message}. Kiểm tra kết nối server.`;
+        }
+    });
+
+    loadFaculty();
+</script>
+</body>
+</html>
